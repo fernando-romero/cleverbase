@@ -1,0 +1,7 @@
+*.class
+.idea
+target/
+.ensime
+.ensime_cache/
+ensime.sbt
+cleverbase.sublime-project

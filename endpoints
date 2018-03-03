@@ -1,0 +1,141 @@
+User
+	name
+	password
+	loggedIn
+	mate
+	secrets
+
+
+Secret
+	owner
+	text
+	sharedWith
+
+============================================
+
+Create secret
+POST /secrets
+{
+	"id": "secret1",
+	"secret": "this is text for secret 1",
+	"sharedWith": ["user1", "user2"]
+}
+201
+401
+
+
+
+Share secret
+	- Requires user to be logged in
+PUT /secrets/secret1
+{
+	"sharedWith": ["user3", "user4"]
+}
+200
+{
+	"id": "secret1",
+	"secret": "this is text for secret 1",
+	"sharedWith": ["user3", "user4"]
+}
+400
+401
+403 - Not logged in
+404
+
+
+
+Get secrets
+GET /secrets
+200
+[
+	{
+		"id": "secret1",
+		"secret": "this is text for secret 1",
+		"sharedWith": ["user1", "user2"]
+	}
+]
+401
+
+
+
+Delete secret
+DELETE /secrets/secret1
+204
+401
+403
+
+
+
+Get shared secrets
+	* ?mate=true to show only mate secrets
+GET /sharedsecrets
+200
+[
+	{
+		"id": "secret2",
+		"secret": "this is text for secret 1",
+		"owner": "user2"
+	}
+]
+401
+
+
+
+Get user info
+GET /
+200
+{
+	"name": "user1",
+	"loggerIn": false,
+	"mate": "user2"
+}
+401
+
+
+
+Set mate
+PUT /
+{
+	"mate": "user3"
+}
+200
+{
+	"name": "user1",
+	"loggerIn": false,
+	"mate": "user3"
+}
+401
+404 - mate not found
+
+
+
+Get users
+GET /users
+200
+[
+	{
+		"name": "user1",
+		"loggerIn": false,
+		"mate": "user3"
+	}
+]
+401
+
+
+
+Log in
+POST /login
+{
+	"secret": "this is text for secret 1"
+}
+204
+401
+403 - bad secret
+
+
+
+Log out
+POST /logout
+204
+401
+
