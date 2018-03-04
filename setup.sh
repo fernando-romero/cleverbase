@@ -67,3 +67,7 @@ curl $1/secrets -X POST \
 	-H "Content-Type: application/json" \
 	-d '{"id":"secret1","text":"this is secret 1"}' -i
 
+# Get own secrets
+
+curl $1/secrets -u joris:tinbergen | python -m json.tool
+

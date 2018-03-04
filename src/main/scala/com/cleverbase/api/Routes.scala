@@ -85,23 +85,32 @@ trait Routes extends JsonSupport {
             }
           },
           path("secrets") {
-            post {
-              if (user.isLoggedIn) {
-                entity(as[CreateSecret]) { data =>
-                  onComplete(persistenceService.createSecret(user.username, data)) {
-                    case Success(secret) =>
-                      complete(StatusCodes.Created, secret.toSelf)
-                    case Failure(f) =>
-                      failWith(f)
+            concat(
+              post {
+                if (user.isLoggedIn) {
+                  entity(as[CreateSecret]) { data =>
+                    onComplete(persistenceService.createSecret(user.username, data)) {
+                      case Success(secret) =>
+                        complete(StatusCodes.Created, secret.toSelf)
+                      case Failure(f) =>
+                        failWith(f)
+                    }
                   }
+                } else {
+                  complete(StatusCodes.Forbidden)
                 }
-              } else {
-                complete(StatusCodes.Forbidden)
+              },
+              get {
+                onComplete(persistenceService.getSecretsByOwner(user.username)) {
+                  case Success(secrets) =>
+                    complete(StatusCodes.Created, SelfSecrets(secrets.map(_.toSelf)))
+                  case Failure(f) =>
+                    failWith(f)
+                }
               }
-            }
+            )
           }
         )
       }
     )
-
 }
