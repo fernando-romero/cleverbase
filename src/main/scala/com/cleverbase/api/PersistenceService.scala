@@ -19,12 +19,12 @@ trait PersistenceService {
   def getUsers(): Future[Seq[User]]
   def createUser(data: CreateUser): Future[User]
   def deleteUsers(): Future[Unit]
-  def login(username: String): Future[Unit]
   def createSecret(owner: String, data: CreateSecret): Future[Secret]
   def deleteSecrets(): Future[Unit]
   def getSecretsByOwner(owner: String): Future[Seq[Secret]]
   def updateSecret(owner: String, data: UpdateSecret): Future[Option[Secret]]
   def getSecretsSharedWith(username: String): Future[Seq[Secret]]
+  def login(user: User, secret: Option[String]): Future[Boolean]
 }
 
 class MongoPersistenceService(uri: String) extends PersistenceService {
@@ -68,10 +68,6 @@ class MongoPersistenceService(uri: String) extends PersistenceService {
     users.drop().toFuture().map(_ => ())
   }
 
-  def login(username: String): Future[Unit] = {
-    users.updateOne(equal("username", username), set("isLoggedIn", true)).toFuture().map(_ => ())
-  }
-
   def createSecret(owner: String, data: CreateSecret): Future[Secret] = {
     val secret = data.toSecret(owner)
     secrets.insertOne(secret).toFuture().map(_ => secret)
@@ -86,7 +82,7 @@ class MongoPersistenceService(uri: String) extends PersistenceService {
   }
 
   def updateSecret(owner: String, data: UpdateSecret): Future[Option[Secret]] = {
-    var filter = and(equal("id", data.id), equal("owner", owner))
+    val filter = and(equal("id", data.id), equal("owner", owner))
     secrets
       .updateOne(filter, set("sharedWith", data.sharedWith))
       .toFuture()
@@ -95,5 +91,41 @@ class MongoPersistenceService(uri: String) extends PersistenceService {
 
   def getSecretsSharedWith(username: String): Future[Seq[Secret]] = {
     secrets.find(equal("sharedWith", username)).toFuture()
+  }
+
+  private def setAsLoggedIn(username: String) = {
+    users.updateOne(equal("username", username), set("isLoggedIn", true)).toFuture()
+  }
+
+  private def verifySecret(user: User, secret: String): Future[Boolean] = {
+    val filter = and(
+      equal("owner", user.mate),
+      equal("sharedWith", user.username),
+      equal("text", secret)
+    )
+    secrets
+      .find(filter)
+      .toFuture()
+      .map(_.size > 0)
+  }
+
+  def login(user: User, secret: Option[String]): Future[Boolean] = {
+    if (user.isLoggedIn) {
+      Future.successful(true)
+    } else if (user.isSuper) {
+      setAsLoggedIn(user.username).map(_ => true)
+    } else {
+      secret match {
+        case None =>
+          Future.successful(false)
+        case Some(s) =>
+          verifySecret(user, s).flatMap {
+            case true =>
+              setAsLoggedIn(user.username).map(_ => true)
+            case false =>
+              Future.successful(false)
+          }
+      }
+    }
   }
 }

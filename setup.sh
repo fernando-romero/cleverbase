@@ -42,7 +42,7 @@ curl $1/users -X POST \
 
 # Super user login
 
-curl $1/login -X POST -u joris:tinbergen | python -m json.tool
+curl $1/login -X POST -u joris:tinbergen -i
 
 # Non-super user login
 
@@ -83,5 +83,19 @@ curl $1/secrets -X PUT \
 
 curl $1/shared -u remco:vanwijk | python -m json.tool
 
+# Login with bad secret
 
+curl $1/login -X POST -u remco:vanwijk -H "Secret: this is NOT secret 1" -i
+
+# Get own secrets with non super
+
+curl $1/secrets -u remco:vanwijk -i
+
+# Login with good secret
+
+curl $1/login -X POST -u remco:vanwijk -H "Secret: this is secret 1" -i
+
+# Get own secrets with non super
+
+curl $1/secrets -u remco:vanwijk | python -m json.tool
 

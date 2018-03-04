@@ -72,16 +72,14 @@ trait Routes extends JsonSupport {
                 failWith(f)
             }
           },
-          (path("login") & post) {
-            if (user.isSuper) {
-              onComplete(persistenceService.login(user.username)) {
-                case Success(_) =>
-                  complete(StatusCodes.NoContent)
-                case Failure(f) =>
-                  failWith(f)
-              }
-            } else {
-              complete(StatusCodes.Forbidden)
+          (path("login") & post & optionalHeaderValueByName("Secret")) { secret =>
+            onComplete(persistenceService.login(user, secret)) {
+              case Success(true) =>
+                complete(StatusCodes.NoContent)
+              case Success(false) =>
+                complete(StatusCodes.Forbidden)
+              case Failure(f) =>
+                failWith(f)
             }
           },
           path("secrets") {
