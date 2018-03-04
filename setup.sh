@@ -12,7 +12,12 @@ curl $1/secrets -X DELETE
 
 curl $1/users -X POST \
 	-H "Content-Type: application/json" \
-	-d '{"username":"joris","password":"tinbergen","mate":"remco","isSuper":true}' \
+	-d '{"username":"fernando","password":"romero","mate":"martijn","isSuper":true}' \
+	| python -m json.tool
+
+curl $1/users -X POST \
+	-H "Content-Type: application/json" \
+	-d '{"username":"joris","password":"tinbergen","mate":"fernando","isSuper":false}' \
 	| python -m json.tool
 
 curl $1/users -X POST \
@@ -22,7 +27,7 @@ curl $1/users -X POST \
 
 curl $1/users -X POST \
 	-H "Content-Type: application/json" \
-	-d '{"username":"valeria","password":"boshnakova","mate":"rene","isSuper":false}' \
+	-d '{"username":"valeria","password":"boshnakova","mate":"remco","isSuper":false}' \
 	| python -m json.tool
 
 curl $1/users -X POST \
@@ -32,7 +37,7 @@ curl $1/users -X POST \
 
 curl $1/users -X POST \
 	-H "Content-Type: application/json" \
-	-d '{"username":"lukas","password":"spee","mate":"vincent","isSuper":false}' \
+	-d '{"username":"lukas","password":"spee","mate":"rene","isSuper":false}' \
 	| python -m json.tool
 
 curl $1/users -X POST \
@@ -40,62 +45,47 @@ curl $1/users -X POST \
 	-d '{"username":"vincent","password":"dehaan","mate":"lukas","isSuper":false}' \
 	| python -m json.tool
 
-# Super user login
-
-curl $1/login -X POST -u joris:tinbergen -i
-
-# Non-super user login
-
-curl $1/login -X POST -u remco:vanwijk -i
-
-# Show users
-
-curl localhost:8080/users -u joris:tinbergen | python -m json.tool
-
-# Create secret with logged in user
-
-curl $1/secrets -X POST \
-	-u joris:tinbergen \
+curl $1/users -X POST \
 	-H "Content-Type: application/json" \
-	-d '{"id":"secret1","text":"this is secret 1"}' \
+	-d '{"username":"bas","password":"dekwant","mate":"vincent","isSuper":false}' \
 	| python -m json.tool
 
-# Create secret with logged out user
-
-curl $1/secrets -X POST \
-	-u remco:vanwijk \
+curl $1/users -X POST \
 	-H "Content-Type: application/json" \
-	-d '{"id":"secret1","text":"this is secret 1"}' -i
-
-# Get own secrets
-
-curl $1/secrets -u joris:tinbergen | python -m json.tool
-
-# Share secret
-
-curl $1/secrets -X PUT \
-	-u joris:tinbergen \
-	-H "Content-Type: application/json" \
-	-d '{"id":"secret1","sharedWith":["remco"]}' \
+	-d '{"username":"lenno","password":"toet","mate":"bas","isSuper":false}' \
 	| python -m json.tool
 
-# Get secrets shared with user
+curl $1/users -X POST \
+	-H "Content-Type: application/json" \
+	-d '{"username":"sander","password":"dijkhuis","mate":"lenno","isSuper":false}' \
+	| python -m json.tool
 
-curl $1/shared -u remco:vanwijk | python -m json.tool
+curl $1/users -X POST \
+	-H "Content-Type: application/json" \
+	-d '{"username":"kirill","password":"korneev","mate":"sander","isSuper":false}' \
+	| python -m json.tool
 
-# Login with bad secret
+curl $1/users -X POST \
+	-H "Content-Type: application/json" \
+	-d '{"username":"david ","password":"lorie","mate":"kirill","isSuper":false}' \
+	| python -m json.tool
 
-curl $1/login -X POST -u remco:vanwijk -H "Secret: this is NOT secret 1" -i
+curl $1/users -X POST \
+	-H "Content-Type: application/json" \
+	-d '{"username":"raul","password":"maduro","mate":"david","isSuper":false}' \
+	| python -m json.tool
 
-# Get own secrets with non super
+curl $1/users -X POST \
+	-H "Content-Type: application/json" \
+	-d '{"username":"willem","password":"vermeer","mate":"raul","isSuper":false}' \
+	| python -m json.tool
 
-curl $1/secrets -u remco:vanwijk -i
+curl $1/users -X POST \
+	-H "Content-Type: application/json" \
+	-d '{"username":"sjaak","password":"vandenberg","mate":"willem","isSuper":false}' \
+	| python -m json.tool
 
-# Login with good secret
-
-curl $1/login -X POST -u remco:vanwijk -H "Secret: this is secret 1" -i
-
-# Get own secrets with non super
-
-curl $1/secrets -u remco:vanwijk | python -m json.tool
-
+curl $1/users -X POST \
+	-H "Content-Type: application/json" \
+	-d '{"username":"martijn","password":"smeets","mate":"sjaak","isSuper":false}' \
+	| python -m json.tool
