@@ -6,6 +6,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import org.mongodb.scala._
 import org.mongodb.scala.model._
 import org.mongodb.scala.model.Filters._
+import org.mongodb.scala.model.Updates._
 
 import org.mongodb.scala.bson.codecs.Macros._
 import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
@@ -17,6 +18,7 @@ trait PersistenceService {
   def getUsers(): Future[Seq[User]]
   def createUser(data: CreateUser): Future[User]
   def clean(): Future[Unit]
+  def login(username: String): Future[Unit]
 }
 
 class MongoPersistenceService(uri: String) extends PersistenceService {
@@ -51,5 +53,9 @@ class MongoPersistenceService(uri: String) extends PersistenceService {
 
   def clean(): Future[Unit] = {
     users.drop().toFuture().map(_ => ())
+  }
+
+  def login(username: String): Future[Unit] = {
+    users.updateOne(equal("username", username), set("isLoggedIn", true)).toFuture().map(_ => ())
   }
 }
