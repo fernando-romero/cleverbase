@@ -43,14 +43,24 @@ trait Routes extends JsonSupport {
         }
       },
       delete {
-        path("users") {
-          onComplete(persistenceService.clean()) {
-            case Success(_) =>
-              complete(StatusCodes.NoContent)
-            case Failure(f) =>
-              failWith(f)
+        concat(
+          path("users") {
+            onComplete(persistenceService.deleteUsers()) {
+              case Success(_) =>
+                complete(StatusCodes.NoContent)
+              case Failure(f) =>
+                failWith(f)
+            }
+          },
+          path("secrets") {
+            onComplete(persistenceService.deleteSecrets()) {
+              case Success(_) =>
+                complete(StatusCodes.NoContent)
+              case Failure(f) =>
+                failWith(f)
+            }
           }
-        }
+        )
       },
       authenticateBasicAsync(realm = "cleverbase", authenticator) { user =>
         concat(
@@ -72,6 +82,22 @@ trait Routes extends JsonSupport {
               }
             } else {
               complete(StatusCodes.Forbidden)
+            }
+          },
+          path("secrets") {
+            post {
+              if (user.isLoggedIn) {
+                entity(as[CreateSecret]) { data =>
+                  onComplete(persistenceService.createSecret(user.username, data)) {
+                    case Success(secret) =>
+                      complete(StatusCodes.Created, secret.toSelf)
+                    case Failure(f) =>
+                      failWith(f)
+                  }
+                }
+              } else {
+                complete(StatusCodes.Forbidden)
+              }
             }
           }
         )
