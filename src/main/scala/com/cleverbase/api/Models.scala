@@ -60,3 +60,5 @@ case class SharedSecret(id: String, text: String, owner: String)
 
 case class SharedSecrets(secrets: Seq[SharedSecret])
 
+case class UpdateSecret(id: String, sharedWith: Seq[String])
+

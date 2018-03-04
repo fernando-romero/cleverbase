@@ -13,4 +13,5 @@ trait JsonSupport extends SprayJsonSupport {
   implicit val selfSecretsFmt = jsonFormat1(SelfSecrets)
   implicit val sharedSecretFmt = jsonFormat3(SharedSecret)
   implicit val sharedSecretsFmt = jsonFormat1(SharedSecrets)
+  implicit val updateSecretFmt = jsonFormat2(UpdateSecret)
 }

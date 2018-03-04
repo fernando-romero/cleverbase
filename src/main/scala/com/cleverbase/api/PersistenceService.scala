@@ -23,6 +23,8 @@ trait PersistenceService {
   def createSecret(owner: String, data: CreateSecret): Future[Secret]
   def deleteSecrets(): Future[Unit]
   def getSecretsByOwner(owner: String): Future[Seq[Secret]]
+  def updateSecret(owner: String, data: UpdateSecret): Future[Option[Secret]]
+  def getSecretsSharedWith(username: String): Future[Seq[Secret]]
 }
 
 class MongoPersistenceService(uri: String) extends PersistenceService {
@@ -81,5 +83,17 @@ class MongoPersistenceService(uri: String) extends PersistenceService {
 
   def getSecretsByOwner(owner: String): Future[Seq[Secret]] = {
     secrets.find(equal("owner", owner)).toFuture()
+  }
+
+  def updateSecret(owner: String, data: UpdateSecret): Future[Option[Secret]] = {
+    var filter = and(equal("id", data.id), equal("owner", owner))
+    secrets
+      .updateOne(filter, set("sharedWith", data.sharedWith))
+      .toFuture()
+      .flatMap(_ => secrets.find(equal("id", data.id)).toFuture().map(_.headOption))
+  }
+
+  def getSecretsSharedWith(username: String): Future[Seq[Secret]] = {
+    secrets.find(equal("sharedWith", username)).toFuture()
   }
 }

@@ -71,3 +71,17 @@ curl $1/secrets -X POST \
 
 curl $1/secrets -u joris:tinbergen | python -m json.tool
 
+# Share secret
+
+curl $1/secrets -X PUT \
+	-u joris:tinbergen \
+	-H "Content-Type: application/json" \
+	-d '{"id":"secret1","sharedWith":["remco"]}' \
+	| python -m json.tool
+
+# Get secrets shared with user
+
+curl $1/shared -u remco:vanwijk | python -m json.tool
+
+
+

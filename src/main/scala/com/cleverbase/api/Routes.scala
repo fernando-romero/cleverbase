@@ -85,9 +85,9 @@ trait Routes extends JsonSupport {
             }
           },
           path("secrets") {
-            concat(
-              post {
-                if (user.isLoggedIn) {
+            if (user.isLoggedIn) {
+              concat(
+                post {
                   entity(as[CreateSecret]) { data =>
                     onComplete(persistenceService.createSecret(user.username, data)) {
                       case Success(secret) =>
@@ -96,19 +96,41 @@ trait Routes extends JsonSupport {
                         failWith(f)
                     }
                   }
-                } else {
-                  complete(StatusCodes.Forbidden)
+                },
+                get {
+                  onComplete(persistenceService.getSecretsByOwner(user.username)) {
+                    case Success(secrets) =>
+                      complete(StatusCodes.Created, SelfSecrets(secrets.map(_.toSelf)))
+                    case Failure(f) =>
+                      failWith(f)
+                  }
+                },
+                put {
+                  entity(as[UpdateSecret]) { data =>
+                    onComplete(persistenceService.updateSecret(user.username, data)) {
+                      case Success(Some(secret)) =>
+                        complete(StatusCodes.Created, secret.toSelf)
+                      case Success(None) =>
+                        complete(StatusCodes.NotFound)
+                      case Failure(f) =>
+                        failWith(f)
+                    }
+                  }
                 }
-              },
-              get {
-                onComplete(persistenceService.getSecretsByOwner(user.username)) {
-                  case Success(secrets) =>
-                    complete(StatusCodes.Created, SelfSecrets(secrets.map(_.toSelf)))
-                  case Failure(f) =>
-                    failWith(f)
-                }
+              )
+            } else {
+              complete(StatusCodes.Forbidden)
+            }
+          },
+          path("shared") {
+            get {
+              onComplete(persistenceService.getSecretsSharedWith(user.username)) {
+                case Success(secrets) =>
+                  complete(StatusCodes.Created, SharedSecrets(secrets.map(_.toShared)))
+                case Failure(f) =>
+                  failWith(f)
               }
-            )
+            }
           }
         )
       }
