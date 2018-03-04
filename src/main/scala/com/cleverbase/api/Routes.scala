@@ -98,7 +98,7 @@ trait Routes extends JsonSupport {
                 get {
                   onComplete(persistenceService.getSecretsByOwner(user.username)) {
                     case Success(secrets) =>
-                      complete(StatusCodes.Created, SelfSecrets(secrets.map(_.toSelf)))
+                      complete(StatusCodes.OK, SelfSecrets(secrets.map(_.toSelf)))
                     case Failure(f) =>
                       failWith(f)
                   }
@@ -107,7 +107,7 @@ trait Routes extends JsonSupport {
                   entity(as[UpdateSecret]) { data =>
                     onComplete(persistenceService.updateSecret(user.username, data)) {
                       case Success(Some(secret)) =>
-                        complete(StatusCodes.Created, secret.toSelf)
+                        complete(StatusCodes.OK, secret.toSelf)
                       case Success(None) =>
                         complete(StatusCodes.NotFound)
                       case Failure(f) =>
@@ -124,7 +124,7 @@ trait Routes extends JsonSupport {
             get {
               onComplete(persistenceService.getSecretsSharedWith(user.username)) {
                 case Success(secrets) =>
-                  complete(StatusCodes.Created, SharedSecrets(secrets.map(_.toShared)))
+                  complete(StatusCodes.OK, SharedSecrets(secrets.map(_.toShared)))
                 case Failure(f) =>
                   failWith(f)
               }

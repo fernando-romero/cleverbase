@@ -54,13 +54,7 @@ class MongoPersistenceService(uri: String) extends PersistenceService {
   }
 
   def createUser(data: CreateUser): Future[User] = {
-    val user = User(
-      username = data.username,
-      password = data.password,
-      mate = data.mate,
-      isSuper = data.isSuper,
-      isLoggedIn = false
-    )
+    val user = data.toUser
     users.insertOne(user).toFuture().map(_ => user)
   }
 

@@ -27,6 +27,10 @@ case class CreateUser(username: String, password: String, mate: String, isSuper:
   require(mate != username, "mate can't be self")
   require(Util.isAlphanumeric(username), "username must be alphanumeric")
   require(Util.isAlphanumeric(mate), "mate must be alphanumeric")
+
+  def toUser = {
+    User(username, password, mate, isSuper, false)
+  }
 }
 
 case class ShowUsers(users: Seq[ShowUser])
