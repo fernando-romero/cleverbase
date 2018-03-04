@@ -3,7 +3,6 @@ User
 	password
 	loggedIn
 	mate
-	secrets
 
 
 Secret
@@ -77,18 +76,6 @@ GET /sharedsecrets
 		"owner": "user2"
 	}
 ]
-401
-
-
-
-Get user info
-GET /
-200
-{
-	"name": "user1",
-	"loggerIn": false,
-	"mate": "user2"
-}
 401
 
 

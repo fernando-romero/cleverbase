@@ -14,15 +14,9 @@ import org.bson.codecs.configuration.CodecRegistries.{ fromRegistries, fromProvi
 trait PersistenceService {
 
   def getUser(username: String): Future[Option[User]]
-}
-
-class MemoryPersistenceService extends PersistenceService {
-
-  val users = User("foo", "bar") :: User("bar", "foo") :: Nil
-
-  def getUser(username: String): Future[Option[User]] = {
-    Future.successful(users.find(_.username == username))
-  }
+  def getUsers(): Future[Seq[User]]
+  def createUser(data: CreateUser): Future[User]
+  def clean(): Future[Unit]
 }
 
 class MongoPersistenceService(uri: String) extends PersistenceService {
@@ -33,16 +27,29 @@ class MongoPersistenceService(uri: String) extends PersistenceService {
   private val users: MongoCollection[User] = database.getCollection("users")
 
   def start: Future[String] = {
-    for {
-      _ <- users.insertOne(User("fernando", "romero")).toFuture().recover { case _ => Nil }
-      _ <- users.insertOne(User("remco", "vanwijk")).toFuture().recover { case _ => Nil }
-      r <- users.createIndex(Indexes.ascending("username"), IndexOptions().unique(true)).toFuture()
-    } yield {
-      r
-    }
+    users.createIndex(Indexes.ascending("username"), IndexOptions().unique(true)).toFuture()
   }
 
   def getUser(username: String): Future[Option[User]] = {
     users.find(equal("username", username)).toFuture().map(_.headOption)
+  }
+
+  def getUsers(): Future[Seq[User]] = {
+    users.find().toFuture()
+  }
+
+  def createUser(data: CreateUser): Future[User] = {
+    val user = User(
+      username = data.username,
+      password = data.password,
+      mate = data.mate,
+      isSuper = data.isSuper,
+      isLoggedIn = false
+    )
+    users.insertOne(user).toFuture().map(_ => user)
+  }
+
+  def clean(): Future[Unit] = {
+    users.drop().toFuture().map(_ => ())
   }
 }
